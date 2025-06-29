@@ -1,5 +1,5 @@
 import type React from "react"
-import Button from "../Button/Button"
+import {Button} from "../ui"
 import "./Header.css"
 
 const Header: React.FC = () => {

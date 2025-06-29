@@ -1,0 +1,86 @@
+.card {
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: box-shadow 0.2s ease-in-out;
+  width: 100%;
+  max-width: 328px;
+}
+
+.card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.card-image {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 20px;
+}
+
+.card-name {
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  font-weight: 400;
+  color: black;
+  margin-bottom: 20px;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.card-position,
+.card-email,
+.card-phone {
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.card-position {
+  margin-bottom: 8px;
+}
+
+/* Responsive card widths */
+@media (min-width: 360px) {
+  .card {
+    max-width: 328px;
+  }
+}
+
+@media (min-width: 768px) {
+  .card {
+    max-width: 344px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .card {
+    max-width: 282px;
+  }
+}
+
+@media (min-width: 1170px) {
+  .card {
+    max-width: 370px;
+  }
+}
