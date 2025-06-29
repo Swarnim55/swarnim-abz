@@ -21,3 +21,32 @@ export interface ApiResponse {
   };
   users: User[];
 }
+
+export interface Position {
+  id: number;
+  name: string;
+}
+
+export interface PositionsResponse {
+  success: boolean;
+  positions: Position[];
+}
+
+export interface RegistrationData {
+  name: string;
+  email: string;
+  phone: string;
+  position_id: number;
+  photo: File;
+}
+
+export interface TokenResponse {
+  success: boolean;
+  token: string;
+}
+
+export interface RegistrationResponse {
+  success: boolean;
+  user_id?: number;
+  message?: string;
+}
