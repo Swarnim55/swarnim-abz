@@ -1,0 +1,60 @@
+.header {
+  width: 100%;
+  background-color: var(--color-background);
+}
+
+.header-container {
+  margin: 0 auto;
+  max-width: 1024px;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  height: 26px;
+  width: 38.11px;
+}
+
+.title {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  color: black;
+}
+
+.buttons-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Responsive margins */
+@media (min-width: 360px) {
+  .header-content {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media (min-width: 720px) {
+  .header-content {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .header-content {
+    padding-left: 3.75rem;
+    padding-right: 3.75rem;
+  }
+}
