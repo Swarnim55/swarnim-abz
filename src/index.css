@@ -6,6 +6,10 @@
   font-weight: 400;
 }
 
+body {
+  background-color: var(--color-background);
+}
+
 @theme {
   /* === Colors === */
   --color-primary: #f4e041;

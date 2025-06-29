@@ -1,71 +1,56 @@
 "use client"
 
-import type React from "react"
-import { useState, useEffect } from "react"
-
-import { userService } from "../../services/userService"
+import React from "react"
+import { useState } from "react"
+import {Card, Button} from "../ui"
+import { useUsersInfinite } from "../../hooks/useUsersQuery"
 import type { User } from "../../types/user"
 import "./UserListing.css"
-import { Button, Card } from "../ui"
 
 const UserListing: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([])
-  const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string | null>(null)
-  const [currentPage, setCurrentPage] = useState<number>(1)
-  const [totalPages, setTotalPages] = useState<number>(1)
-  const [showMoreLoading, setShowMoreLoading] = useState<boolean>(false)
+  const { firstPageData, isFirstPageLoading, firstPageError, refetchFirstPage, loadMoreUsers } =
+    useUsersInfinite()
 
-  const fetchUsers = async (page: number, append = false) => {
+  const [allUsers, setAllUsers] = useState<User[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [loadMoreError, setLoadMoreError] = useState<string | null>(null)
+
+  // Update state when first page data changes
+  React.useEffect(() => {
+    if (firstPageData) {
+      setAllUsers(firstPageData.users)
+      setCurrentPage(1)
+      setTotalPages(firstPageData.totalPages)
+    }
+  }, [firstPageData])
+
+  const handleLoadMore = async () => {
+    if (isLoadingMore || currentPage >= totalPages) return
+
+    setIsLoadingMore(true)
+    setLoadMoreError(null)
+
     try {
-      if (append) {
-        setShowMoreLoading(true)
-      } else {
-        setLoading(true)
-        setError(null)
-      }
-
-      const data = await userService.getUsers(page, 6)
-
-      // Sort users by registration timestamp (newest first)
-      const sortedUsers = data.users.sort((a, b) => b.registration_timestamp - a.registration_timestamp)
-
-      if (append) {
-        setUsers((prevUsers) => [...prevUsers, ...sortedUsers])
-      } else {
-        setUsers(sortedUsers)
-      }
-      setTotalPages(data.total_pages)
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "An error occurred while fetching users"
-      setError(errorMessage)
-      console.error("Error fetching users:", err)
+      const result = await loadMoreUsers(allUsers, currentPage)
+      setAllUsers(result.users)
+      setCurrentPage(result.page)
+      setTotalPages(result.totalPages)
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to load more users"
+      setLoadMoreError(errorMessage)
     } finally {
-      setLoading(false)
-      setShowMoreLoading(false)
+      setIsLoadingMore(false)
     }
   }
 
-  useEffect(() => {
-    fetchUsers(1)
-  }, [])
-
-  const handleShowMore = () => {
-    const nextPage = currentPage + 1
-    setCurrentPage(nextPage)
-    fetchUsers(nextPage, true)
-  }
-
   const handleRetry = () => {
-    setError(null)
-    setCurrentPage(1)
-    setUsers([])
-    fetchUsers(1)
+    setLoadMoreError(null)
+    refetchFirstPage()
   }
 
-  const hasMorePages = currentPage < totalPages
-
-  if (loading && users.length === 0) {
+  if (isFirstPageLoading) {
     return (
       <section className="user-listing">
         <div className="user-listing-container">
@@ -77,13 +62,13 @@ const UserListing: React.FC = () => {
     )
   }
 
-  if (error && users.length === 0) {
+  if (firstPageError && allUsers.length === 0) {
     return (
       <section className="user-listing">
         <div className="user-listing-container">
           <div className="user-listing-content">
             <div className="error-message">
-              {error}
+              {firstPageError instanceof Error ? firstPageError.message : "Failed to load users"}
               <br />
               <Button variant="primary" onClick={handleRetry} style={{ marginTop: "1rem" }}>
                 Try Again
@@ -95,6 +80,8 @@ const UserListing: React.FC = () => {
     )
   }
 
+  const hasMorePages = currentPage < totalPages
+
   return (
     <section className="user-listing">
       <div className="user-listing-container">
@@ -102,27 +89,26 @@ const UserListing: React.FC = () => {
           <h2 className="user-listing-title">Working with GET request</h2>
 
           <div className="user-grid">
-            {users.map((user) => (
+            {allUsers.map((user) => (
               <Card key={user.id} user={user} />
             ))}
           </div>
 
           {hasMorePages && (
             <div className="show-more-container">
-              <Button
-                variant="primary"
-                className="show-more-button"
-                onClick={handleShowMore}
-                disabled={showMoreLoading}
-              >
-                {showMoreLoading ? "Loading..." : "Show more"}
+              <Button variant="primary" className="show-more-button" onClick={handleLoadMore} disabled={isLoadingMore}>
+                {isLoadingMore ? "Loading..." : "Show more"}
               </Button>
             </div>
           )}
 
-          {error && users.length > 0 && (
+          {loadMoreError && (
             <div className="error-message" style={{ marginTop: "1rem" }}>
-              Failed to load more users. Please try again.
+              {loadMoreError}
+              <br />
+              <Button variant="primary" onClick={handleLoadMore} style={{ marginTop: "0.5rem" }}>
+                Try Again
+              </Button>
             </div>
           )}
         </div>
