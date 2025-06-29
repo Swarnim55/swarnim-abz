@@ -10,7 +10,7 @@ const Header: React.FC = () => {
           {/* Logo and Title Section */}
           <div className="logo-section">
             <img src="/logo.png" alt="Logo" className="logo" />
-            <h1 className="title">TESTTASK</h1>
+            <img src="/header-logo.png" alt="Title Logo" className="title-logo" />
           </div>
 
           {/* Buttons Section */}
