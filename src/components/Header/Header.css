@@ -25,10 +25,9 @@
   width: 38.11px;
 }
 
-.title {
-  font-family: var(--font-sans);
-  font-weight: 400;
-  color: black;
+.title-logo {
+  height: 10.52px;
+  width: 63.91px;
 }
 
 .buttons-section {
