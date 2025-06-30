@@ -5,7 +5,6 @@ export interface ApiError {
   message: string;
   fails?: Record<string, string[]>;
 }
-
 export interface ApiErrorResponse {
   status?: number;
   data?: {
@@ -14,27 +13,33 @@ export interface ApiErrorResponse {
   };
   message?: string;
 }
-
 export const parseApiError = (error: ApiErrorResponse): ApiError => {
+  let result: ApiError;
+
+  // If it's our custom error from interceptor
   if (error.status && error.data) {
-    return {
+    result = {
       status: error.status,
-      message: error.data.message || error.message || "Unknown error",
-      fails: error.data.fails,
+      message: error.data.message || error.message || "",
+      fails: error.data.fails, // This will be undefined for non-422 errors
     };
   }
-
-  if (error instanceof Error) {
-    return {
+  // If it's a standard Error object
+  else if (error instanceof Error) {
+    result = {
       status: 500,
       message: error.message,
     };
   }
+  // Fallback
+  else {
+    result = {
+      status: 500,
+      message: "An unexpected error occurred",
+    };
+  }
 
-  return {
-    status: 500,
-    message: "An unexpected error occurred",
-  };
+  return result;
 };
 
 export const extractValidationErrors = (
@@ -43,9 +48,12 @@ export const extractValidationErrors = (
   const apiError = parseApiError(error);
   const formErrors: FormErrors = {};
 
+  // Only 422 errors have the 'fails' object
   if (apiError.status === 422 && apiError.fails) {
+    // Map backend field errors to form errors
     Object.entries(apiError.fails).forEach(([field, messages]) => {
       if (messages && messages.length > 0) {
+        // Take the first error message for each field
         formErrors[field as keyof FormErrors] = messages[0];
       }
     });
@@ -57,28 +65,38 @@ export const extractValidationErrors = (
 export const getErrorMessage = (error: ApiErrorResponse): string => {
   const apiError = parseApiError(error);
 
+  let message: string;
+
   switch (apiError.status) {
     case 401:
-      return "The token expired. Please try again.";
+      message = "The token expired. Please try again.";
+      break;
     case 409:
-      return "User with this phone or email already exists.";
+      // Use the actual message from the backend
+      message =
+        apiError.message || "User with this phone or email already exists.";
+      break;
     case 422:
-      return "Please fix the validation errors below.";
+      message = "Please fix the validation errors below.";
+      break;
     default:
-      return apiError.message || "Registration failed. Please try again.";
+      // For all other errors, use the backend message
+      message = apiError.message || "Registration failed. Please try again.";
   }
+
+  return message;
 };
 
 export const isValidationError = (error: ApiErrorResponse): boolean => {
   const apiError = parseApiError(error);
-  return apiError.status === 422 && !!apiError.fails;
+  const result = apiError.status === 422 && !!apiError.fails;
+
+  return result;
 };
 
 export const isConflictError = (error: ApiErrorResponse): boolean => {
   const apiError = parseApiError(error);
-  return apiError.status === 409;
-};
+  const result = apiError.status === 409;
 
-export const shouldHighlightFields = (error: ApiErrorResponse): boolean => {
-  return isValidationError(error) || isConflictError(error);
+  return result;
 };

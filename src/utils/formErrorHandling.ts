@@ -11,17 +11,13 @@ export const extractConflictErrors = (error: ApiErrorResponse): FormErrors => {
 
     // Check the message content to determine which fields are conflicting
     if (message.includes("email") && message.includes("phone")) {
-      // Both email and phone conflict
       formErrors.email = "User with this email already exists";
       formErrors.phone = "User with this phone already exists";
     } else if (message.includes("email")) {
-      // Only email conflicts
       formErrors.email = "User with this email already exists";
     } else if (message.includes("phone")) {
-      // Only phone conflicts
       formErrors.phone = "User with this phone already exists";
     } else {
-      // Generic conflict - highlight both fields as we can't determine which one
       formErrors.email = "User with this email already exists";
       formErrors.phone = "User with this phone already exists";
     }

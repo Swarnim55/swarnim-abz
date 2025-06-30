@@ -1,20 +1,16 @@
 "use client"
 
 import React from "react"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import toast, { Toaster } from "react-hot-toast"
 import {Button} from "../ui"
 import { useRegistrationMutation, usePositionsQuery } from "../../hooks"
 import { validateRegistrationForm, createInitialFormData } from "../../utils/formValidation"
-import { extractValidationErrors,
-  getErrorMessage,
-  isValidationError,
-  isConflictError,
-  } from "../../utils/errorHandling"
+import { extractValidationErrors, getErrorMessage, isValidationError, isConflictError } from "../../utils/errorHandling"
+import { extractConflictErrors } from "../../utils/formErrorHandling"
 import type { RegistrationData } from "../../types/user"
 import type { FormErrors, FormData } from "../../utils/formValidation"
 import "./Form.css"
-import { extractConflictErrors } from "../../utils/formErrorHandling"
 
 const RegistrationForm: React.FC = () => {
   const { data: positions = [], isLoading: positionsLoading, error: positionsError } = usePositionsQuery()
@@ -24,8 +20,7 @@ const RegistrationForm: React.FC = () => {
   const [errors, setErrors] = useState<FormErrors>({})
   const [uploadText, setUploadText] = useState<string>("Upload your photo")
 
-  // Set default position when positions load
-  useEffect(() => {
+  React.useEffect(() => {
     if (positions.length > 0 && !formData.position_id) {
       setFormData((prev) => ({ ...prev, position_id: positions[0].id }))
     }
@@ -42,7 +37,6 @@ const RegistrationForm: React.FC = () => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
 
-    // Clear error when user starts typing
     if (errors[name as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }))
     }
@@ -69,10 +63,8 @@ const RegistrationForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Clear previous errors
     setErrors({})
 
-    // Frontend validation first
     const frontendValidationErrors = validateRegistrationForm(formData)
     if (Object.keys(frontendValidationErrors).length > 0) {
       setErrors(frontendValidationErrors)
@@ -89,7 +81,6 @@ const RegistrationForm: React.FC = () => {
 
     registrationMutation.mutate(registrationData, {
       onSuccess: () => {
-        // Show success toast
         toast.success("User successfully registered!", {
           duration: 4000,
           position: "top-right",
@@ -99,15 +90,15 @@ const RegistrationForm: React.FC = () => {
           },
         })
 
-        // Reset form on success
         resetForm()
       },
       onError: (error) => {
-        console.error("Registration error:", error)
+     
+        const isValidation = isValidationError(error)
+        const isConflict = isConflictError(error)
 
-        // Check if it's a validation error (422)
-        if (isValidationError(error)) {
-          // Extract and show field-specific validation errors
+
+        if (isValidation) {
           const backendValidationErrors = extractValidationErrors(error)
           setErrors(backendValidationErrors)
 
@@ -120,23 +111,12 @@ const RegistrationForm: React.FC = () => {
             },
           })
         }
-        else if (isConflictError(error)) {
+        else if (isConflict) {
           const conflictErrors = extractConflictErrors(error)
           setErrors(conflictErrors)
 
-          // Use the actual backend message
           const errorMessage = getErrorMessage(error)
-          toast.error(errorMessage, {
-            duration: 4000,
-            position: "top-right",
-            style: {
-              background: "var(--color-error)",
-              color: "white",
-            },
-          })
-        } 
-        else {
-          const errorMessage = getErrorMessage(error)
+
           toast.error(errorMessage, {
             duration: 4000,
             position: "top-right",
@@ -146,6 +126,19 @@ const RegistrationForm: React.FC = () => {
             },
           })
         }
+        else {
+          const errorMessage = getErrorMessage(error)
+
+          toast.error(errorMessage, {
+            duration: 4000,
+            position: "top-right",
+            style: {
+              background: "var(--color-error)",
+              color: "white",
+            },
+          })
+        }
+
       },
     })
   }
@@ -182,7 +175,6 @@ const RegistrationForm: React.FC = () => {
 
           <div className="form-wrapper">
             <form onSubmit={handleSubmit}>
-              {/* Name Field */}
               <div className="form-group">
                 <input
                   type="text"
@@ -195,7 +187,6 @@ const RegistrationForm: React.FC = () => {
                 {errors.name && <div className="error-message">{errors.name}</div>}
               </div>
 
-              {/* Email Field */}
               <div className="form-group">
                 <input
                   type="email"
@@ -208,7 +199,6 @@ const RegistrationForm: React.FC = () => {
                 {errors.email && <div className="error-message">{errors.email}</div>}
               </div>
 
-              {/* Phone Field */}
               <div className="form-group">
                 <input
                   type="tel"
@@ -221,7 +211,6 @@ const RegistrationForm: React.FC = () => {
                 {errors.phone && <div className="error-message">{errors.phone}</div>}
               </div>
 
-              {/* Position Selection */}
               <div className="position-group">
                 <label className="position-label">Select your position</label>
                 <div className="radio-group">
@@ -245,7 +234,6 @@ const RegistrationForm: React.FC = () => {
                 {errors.position_id && <div className="error-message">{errors.position_id}</div>}
               </div>
 
-              {/* Photo Upload */}
               <div className="upload-group">
                 <div className="upload-container">
                   <label htmlFor="photo-upload" className="upload-button">
@@ -263,7 +251,6 @@ const RegistrationForm: React.FC = () => {
                 {errors.photo && <div className="error-message">{errors.photo}</div>}
               </div>
 
-              {/* Submit Button */}
               <div className="submit-container">
                 <Button
                   type="submit"
@@ -277,8 +264,7 @@ const RegistrationForm: React.FC = () => {
             </form>
           </div>
 
-          {/* Toast Container */}
-          <Toaster />
+        <Toaster />
         </div>
       </div>
     </section>
