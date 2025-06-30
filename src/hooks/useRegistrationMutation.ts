@@ -9,21 +9,17 @@ export const useRegistrationMutation = () => {
 
   return useMutation({
     mutationFn: async (data: RegistrationData) => {
-      console.log("Starting user registration...");
-
       // Get registration token
       const tokenResponse = await userService.getToken();
 
       // Register user
       const result = await userService.registerUser(data, tokenResponse.token);
 
-      console.log("User registration successful");
       return result;
     },
     onSuccess: () => {
       // Invalidate and refetch users data
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      console.log("Users data invalidated and will be refetched");
     },
     onError: (error) => {
       console.error("Registration error:", error);
